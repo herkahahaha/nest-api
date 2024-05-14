@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import {
   RegisterUserReqest,
   UserResponse,
   LoginResponse,
+  UpdateUserRequest,
 } from '../model/user.model';
 import { WebResponse } from '../model/web.model';
 import { UserService } from './user.service';
@@ -38,6 +39,19 @@ export class UserController {
   @HttpCode(200)
   async get(@Auth() user: User): Promise<WebResponse<UserResponse>> {
     const result = await this.userService.get(user);
+
+    return {
+      data: result,
+    };
+  }
+
+  @Patch('/current')
+  @HttpCode(200)
+  async update(
+    @Auth() user: User,
+    @Body() request: UpdateUserRequest,
+  ): Promise<WebResponse<UserResponse>> {
+    const result = await this.userService.updateUser(user, request);
     return {
       data: result,
     };

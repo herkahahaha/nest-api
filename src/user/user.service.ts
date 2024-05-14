@@ -5,6 +5,7 @@ import { ValidationService } from '../common/validation.service';
 import {
   LoginResponse,
   RegisterUserReqest,
+  UpdateUserRequest,
   UserResponse,
 } from '../model/user.model';
 import { Logger } from 'winston';
@@ -22,7 +23,7 @@ export class UserService {
   ) {}
 
   async register(request: RegisterUserReqest): Promise<UserResponse> {
-    this.logger.debug(`Register new user ${JSON.stringify(request)}`);
+    // this.logger.debug(`Register new user ${JSON.stringify(request)}`);
     // eslint-disable-next-line prefer-const
     let registerRequest: RegisterUserReqest = this.validationService.validate(
       UserValidation.REGISTER,
@@ -96,8 +97,41 @@ export class UserService {
 
   async get(user: User): Promise<UserResponse> {
     return {
-      username: user.username,
-      name: user.name,
+      username: user?.username,
+      name: user?.name,
+    };
+  }
+
+  async updateUser(
+    user: User,
+    request: UpdateUserRequest,
+  ): Promise<UserResponse> {
+    this.logger.debug(
+      `userService update ${JSON.stringify(request)} , ${JSON.stringify(request)}`,
+    );
+
+    const updateRequest: UpdateUserRequest = this.validationService.validate(
+      UserValidation.UPDATE,
+      request,
+    );
+
+    if (updateRequest.name) {
+      user.name = updateRequest.name;
+    }
+    if (updateRequest.password) {
+      user.password = await bcrypt.hash(updateRequest.password, 10);
+    }
+
+    const result = await this.prismaService.user.update({
+      where: {
+        username: user.username,
+      },
+      data: user,
+    });
+
+    return {
+      name: result.name,
+      username: result.username,
     };
   }
 }
